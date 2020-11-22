@@ -30,7 +30,7 @@ def RecycleBlock(x, num_layers, m=2, growth_rate=32, dropout_rate=None, weight_d
     :param growth_rate: the growth rate
     :param dropout_rate: the dropout rate
     :param weight_decay: the weight decay factor
-    :return: a tensor with shape (num_batches, width, height, num_channels + growth_rate * num_layers)
+    :return: a tensor with shape (num_batches, width, height, num_channels + growth_rate * [num_layers / m])
     """
 
     x_list = [x]
@@ -46,12 +46,63 @@ def RecycleBlock(x, num_layers, m=2, growth_rate=32, dropout_rate=None, weight_d
         for j in range(l):
             if j % m == 0:
                 x.append(x_list[j])
-        #
-        # # append the first layer
-        # if not (l - 1) % m == 0:
-        #     x.append(x_list[0])
 
         x = tf.concat(x, axis=-1)
+
+    return x
+
+
+def SparseBlock(x, num_layers, num_path=2, growth_rate=32, dropout_rate=None, weight_decay=1e-4):
+    """
+    Implements the dense block in SparseNet. Each layer is connected to the closest and furthest layers.
+    :param x: inputs of shape (num_batches, width, height, num_channels)
+    :param num_layers: number of repeated layers inside each sparse block
+    :param num_path: number of paths each layer is connected to previous layers
+    :param growth_rate: the growth rate
+    :param dropout_rate: the dropout rate
+    :param weight_decay: the weight decay factor
+    :return: a tensor with shape (num_batches, width, height, num_channels + growth_rate * (path - 1))
+    """
+
+    x_list = [x]
+
+    for i in range(num_layers):
+        add_layer = conv_layer(x, growth_rate=growth_rate, dropout_rate=dropout_rate,
+                               weight_decay=weight_decay)
+        x_list.append(add_layer)
+
+        # fetch all the layers connected to the new layer
+        l = len(x_list)
+        if num_path >= l:
+            x = x_list
+        else:
+            x = x_list[0: round(num_path / 2)]
+            x = x + x_list[l - (num_path - round(num_path / 2)):]
+
+        x = tf.concat(x, axis=-1)
+
+    return x
+
+
+def WideSparseBlock(x, num_layers, width=6, num_path=2, growth_rate=32, dropout_rate=None, weight_decay=1e-4):
+    """
+    Implements the WideSparseBlock where multiple sparse blocks are lined up in parallel.
+    :param x: inputs of shape (num_batches, width, height, num_channels)
+    :param num_layers: number of repeated layers inside each sparse block
+    :param width: number of sparse blocks in parallel
+    :param num_path: number of paths each layer is connected to previous layers
+    :param growth_rate: the growth rate
+    :param dropout_rate: the dropout rate
+    :param weight_decay: the weight decay factor
+    :return: a tensor with shape (num_batches, width, height, width * (num_channels + growth_rate * (path - 1)))
+    """
+
+    x_list = []
+    for i in range(width):
+        y = SparseBlock(x, num_layers, num_path, growth_rate, dropout_rate, weight_decay)
+        x_list.append(y)
+
+    x = tf.concat(x_list, axis=-1)
 
     return x
 

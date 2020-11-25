@@ -60,16 +60,16 @@ def load_data(batch_size=32, img_size=(224, 224), horizontal_flip=False, vertica
     return train_generator, test_generator
 
 
-train_generator, test_generator = load_data()
-
-labels = train_generator.class_indices
-print(labels)
-
-for x_test, labels in test_generator:
-    break
-
-print('Shape of x_test: ' + str(x_test.shape))
-print('Shape of labels: ' + str(labels.shape))
-# print(x_test[0])
-plt.imshow(x_test[0])
-plt.show()
+# train_generator, test_generator = load_data()
+#
+# labels = train_generator.class_indices
+# print(labels)
+#
+# for x_test, labels in test_generator:
+#     break
+#
+# print('Shape of x_test: ' + str(x_test.shape))
+# print('Shape of labels: ' + str(labels.shape))
+# # print(x_test[0])
+# plt.imshow(x_test[0])
+# plt.show()

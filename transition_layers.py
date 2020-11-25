@@ -54,7 +54,7 @@ def translation_layer(x, comp_ratio, weight_decay):
     output = average_pooling(output)
     return output
 
-def classificiation_layer(x, num_classes):
+def classification_layer(x):
     """
     the final classification layer
     :param x: inputs of shape (num_batches, width, height, num_channels)
@@ -64,6 +64,6 @@ def classificiation_layer(x, num_classes):
 
     x = tf.keras.layers.BatchNormalization(axis=-1, epsilon=1.1e-5)(x)
     x = tf.nn.relu(x)
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
+    x = tf.keras.layers.GlobalAveragePooling2D(data_format='channels_last')(x)
+    x = tf.keras.layers.Dense(units=2, activation='softmax')(x)
     return x

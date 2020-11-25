@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.python.keras.regularizers import l2
 
+
 def initial_operation(x, growth_rate):
     """
     Process the initial inputs
@@ -23,33 +24,33 @@ def average_pooling(x):
     :param x: inputs of shape (num_batches, width, height, num_channels)
     :return: an average pooling layer for transition block
     """
-    return tf.layers.AveragePooling2D(padding="same")(x)
+    return tf.keras.layers.AveragePooling2D(padding="same")(x)
 
-def compress_layer(x, growth_rate, weight_decay):
+def compress_layer(x, comp_ratio, weight_decay):
     """
     Halve the dense block outputs
     :param x: inputs of shape (num_batches, width, height, num_channels)
-    :param growth_rate: the growth rate
+    :param comp_ratio: the compression ratio
     :param weight_decay: the weight decay factor
     :return:  a 1x1 convolution layer for transition block
     """
 
     x = tf.keras.layers.BatchNormalization(axis=-1, epsilon=1.1e-5)(x)
     x = tf.nn.relu(x)
-    x = tf.keras.layers.Conv2D(4 * growth_rate, 1, kernel_initializer='he_normal', padding='same', use_bias=False, kernel_regularizer=l2(weight_decay))(x)
+    x = tf.keras.layers.Conv2D(round(x.shape[-1] * comp_ratio), 1, kernel_initializer='he_normal', padding='same', use_bias=False, kernel_regularizer=l2(weight_decay))(x)
     return x
 
-def translation_layer(x, growth_rate, weight_decay):
+def translation_layer(x, comp_ratio, weight_decay):
     """
     Implements the translation layer which inclues 1x1 Convolution 2x2 average pooling with stride 2
     :param x: inputs of shape (num_batches, width, height, num_channels)
-    :param growth_rate: the growth rate
+    :param comp_ratio: the compression ratio
     :param dropout_rate: the dropout rate
     :param weight_decay: the weight decay factor
     :return: a tensor with shape (num_batches, width, height, growth_rate)
     """
     # 1x1 convolution
-    output = compress_layer(x, growth_rate, weight_decay)
+    output = compress_layer(x, comp_ratio, weight_decay)
     # average_pooling
     output = average_pooling(output)
     return output

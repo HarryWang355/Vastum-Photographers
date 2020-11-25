@@ -9,12 +9,12 @@ def initial_operation(x, growth_rate):
     :return: an average pooling layer for transition block
     """
     # 7x7 convolution layer
+    x = tf.keras.layers.Conv2D(2 * growth_rate, 7, strides=2, padding='same', kernel_initializer='he_normal', use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization(axis=-1, epsilon=1.1e-5)(x)
     x = tf.nn.relu(x)
-    x = tf.keras.layers.Conv2D(2 * growth_rate, 7, strides=2, padding='same', kernel_initializer='he_normal', use_bias=False)(x)
 
     # max-pool layer
-    tf.keras.layers.MaxPool2D(pool_size=(3, 3), padding='same')(x)
+    x = tf.keras.layers.MaxPool2D(pool_size=(3, 3), strides=(2, 2), padding='same')(x)
     return x
 
 def average_pooling(x):

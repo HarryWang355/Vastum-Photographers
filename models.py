@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from Blocks import DenseBlock
 from Preprocess import load_data
-from Translation_layer import initial_operation, translation_layer
+from transition_layers import initial_operation, translation_layer
 
 
 def __create_dense_net(x, num_blocks=4, num_layers_list=None, growth_rate=32, comp_ratio=0.5,

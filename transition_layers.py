@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow.python.keras.regularizers import l2
 
-
 def initial_operation(x, growth_rate):
     """
     Process the initial inputs
@@ -55,15 +54,16 @@ def translation_layer(x, comp_ratio, weight_decay):
     output = average_pooling(output)
     return output
 
-# def classificiation_later(x, num_classes, growth_rate):
-#     """
-#     Process the initial inputs
-#     :param x: inputs of shape (num_batches, width, height, num_channels)
-#     :param growth_rate: the growth rate
-#     :return: an average pooling layer for transition block
-#     """
-#
-#     # probably incorrect => needed a 7x7 global average pool, tbh not sure what that means
-#     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-      # hmmm.....1000D fully-connected?
-#     return x
+def classificiation_layer(x, num_classes):
+    """
+    the final classification layer
+    :param x: inputs of shape (num_batches, width, height, num_channels)
+    :param num_classes: the number of classes
+    :return: an average pooling layer for transition block
+    """
+
+    x = tf.keras.layers.BatchNormalization(axis=-1, epsilon=1.1e-5)(x)
+    x = tf.nn.relu(x)
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
+    return x

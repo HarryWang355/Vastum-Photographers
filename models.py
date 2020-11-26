@@ -72,6 +72,38 @@ def RecycleNet(input_shape=(224, 224, 3), num_blocks=4, m=2, num_layers_list=Non
 
     return model
 
+def __create_sparse_net(x, num_blocks=3, num_path=2, num_layers_list=None, growth_rate=32, comp_ratio=0.5,
+                       dropout_rate=None, weight_decay=1e-4):
+    if num_layers_list is None:
+        num_layers_list = [12, 18, 24]
+
+    x = initial_operation(x, growth_rate)
+
+    # add dense blocks and translation layers
+    for i in range(num_blocks - 1):
+        x = SparseBlock(x, num_layers_list[i], num_path=num_path, growth_rate=growth_rate, dropout_rate=dropout_rate, weight_decay=weight_decay)
+        x = translation_layer(x, comp_ratio=comp_ratio, weight_decay=weight_decay)
+
+    # last dense block
+    x = SparseBlock(x, num_layers_list[-1], growth_rate=growth_rate, dropout_rate=dropout_rate, weight_decay=weight_decay)
+
+    # classification layer
+    x = classification_layer(x)
+
+    return x
+
+
+def SparseNet(input_shape=(224, 224, 3), num_blocks=3, num_path=2, num_layers_list=None, growth_rate=32,
+             dropout_rate=None, weight_decay=1e-4):
+
+    input_img = tf.keras.Input(shape=input_shape)
+
+    x = __create_sparse_net(input_img, num_blocks=num_blocks, num_path=num_path, num_layers_list=num_layers_list, growth_rate=growth_rate,
+                           dropout_rate=dropout_rate, weight_decay=weight_decay)
+
+    model = tf.keras.Model(inputs=input_img, outputs=x)
+
+    return model
 
 if __name__ == '__main__':
 
@@ -90,3 +122,10 @@ if __name__ == '__main__':
                       optimizer='adam',
                       metrics=['accuracy'])
     history_recycle = recycle_net.fit(x=train_generator, epochs=1)
+
+    # sparse_net = SparseNet()
+    # sparse_net.summary()
+    # sparse_net.compile(loss='binary_crossentropy',
+    #                   optimizer='adam',
+    #                   metrics=['accuracy'])
+    # history_sparse = sparse_net.fit(x=train_generator, epochs=1)

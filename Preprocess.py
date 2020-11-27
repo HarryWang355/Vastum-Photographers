@@ -36,7 +36,8 @@ import tensorflow as tf
 #     return dataset
 
 
-def load_data(batch_size=32, img_size=(224, 224), horizontal_flip=False, vertical_flip=False):
+def load_data(batch_size=32, img_size=(224, 224), num_class=2, path='DATASET',
+              horizontal_flip=False, vertical_flip=False):
 
     # data argumentation
     train_datagen = ImageDataGenerator(
@@ -47,29 +48,15 @@ def load_data(batch_size=32, img_size=(224, 224), horizontal_flip=False, vertica
 
     # data generator
     train_generator = train_datagen.flow_from_directory(
-            'DATASET/TRAIN',
+            path + '/TRAIN',
             target_size=img_size,
             batch_size=batch_size,
-            class_mode='binary')
+            class_mode='binary' if num_class == 2 else 'categorical')
     test_generator = test_datagen.flow_from_directory(
-            'DATASET/TEST',
+            path + '/TEST',
             target_size=img_size,
             batch_size=batch_size,
-            class_mode='binary')
+            class_mode='binary' if num_class == 2 else 'categorical')
 
     return train_generator, test_generator
 
-
-train_generator, test_generator = load_data()
-
-labels = train_generator.class_indices
-print(labels)
-
-for x_test, labels in test_generator:
-    break
-
-print('Shape of x_test: ' + str(x_test.shape))
-print('Shape of labels: ' + str(labels.shape))
-# print(x_test[0])
-plt.imshow(x_test[0])
-plt.show()
